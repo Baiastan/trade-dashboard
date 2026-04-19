@@ -11,16 +11,10 @@ function TradeBehaviorStats({ tradeSummaries = [] }) {
     : 0;
 
   return (
-    <div style={{ marginTop: 20, marginBottom: 20 }}>
+    <div className="analysis-section">
       <h3>Trade Behavior</h3>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
+      <div className="analysis-grid">
         <StatCard
           label="Average Profit Take %"
           value={`${avgProfitTakePct.toFixed(2)}%`}
@@ -43,14 +37,7 @@ function TradeBehaviorStats({ tradeSummaries = [] }) {
 
 function StatCard({ label, value, color }) {
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: 16,
-        minWidth: 180,
-      }}
-    >
+    <div className="analysis-card">
       <div>{label}</div>
       <strong style={{ color }}>{value}</strong>
     </div>

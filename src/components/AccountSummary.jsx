@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ActionButton, FormField, FormRow, SelectInput, SummaryMetricCard, TextInput } from "./ui/FormControls";
 
 function AccountSummary({ completedTrades, onAccountDataChange }) {
   const [initialFundInput, setInitialFundInput] = useState(() => {
@@ -68,74 +69,51 @@ function AccountSummary({ completedTrades, onAccountDataChange }) {
   const estimatedEquity = netDeposits + realizedPnl;
 
   return (
-    <div style={{ marginTop: 24, marginBottom: 24 }}>
+    <div className="ui-section">
       <h3>Account Summary</h3>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          flexWrap: "wrap",
-          marginBottom: 20,
-          alignItems: "end",
-        }}
-      >
-        <div>
-          <label>Initial Fund</label>
-          <br />
-          <input
+      <FormRow>
+        <FormField label="Initial Fund">
+          <TextInput
             type="number"
             step="0.01"
             value={initialFundInput}
             onChange={(e) => setInitialFundInput(e.target.value)}
             placeholder="e.g. 2650"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label>Type</label>
-          <br />
-          <select value={type} onChange={(e) => setType(e.target.value)}>
+        <FormField label="Type">
+          <SelectInput value={type} onChange={(e) => setType(e.target.value)}>
             <option value="deposit">Deposit</option>
             <option value="withdrawal">Withdrawal</option>
-          </select>
-        </div>
+          </SelectInput>
+        </FormField>
 
-        <div>
-          <label>Amount</label>
-          <br />
-          <input
+        <FormField label="Amount">
+          <TextInput
             type="number"
             step="0.01"
             value={amountInput}
             onChange={(e) => setAmountInput(e.target.value)}
             placeholder="e.g. 1000"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label>Date</label>
-          <br />
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        </div>
+        <FormField label="Date">
+          <TextInput type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </FormField>
 
-        <button onClick={addCashflow}>Add</button>
-      </div>
+        <ActionButton onClick={addCashflow}>Add</ActionButton>
+      </FormRow>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-          marginBottom: 20,
-        }}
-      >
-        <SummaryCard label="Initial Fund" value={initialFund} />
-        <SummaryCard label="Deposits" value={totalDeposits} />
-        <SummaryCard label="Withdrawals" value={totalWithdrawals} />
-        <SummaryCard label="Net Deposits" value={netDeposits} />
-        <SummaryCard label="Realized P&L" value={realizedPnl} />
-        <SummaryCard label="Estimated Equity" value={estimatedEquity} />
+      <div className="ui-card-grid">
+        <SummaryMetricCard label="Initial Fund" value={initialFund} />
+        <SummaryMetricCard label="Deposits" value={totalDeposits} />
+        <SummaryMetricCard label="Withdrawals" value={totalWithdrawals} />
+        <SummaryMetricCard label="Net Deposits" value={netDeposits} />
+        <SummaryMetricCard label="Realized P&L" value={realizedPnl} />
+        <SummaryMetricCard label="Estimated Equity" value={estimatedEquity} />
       </div>
 
       {cashflows.length > 0 && (
@@ -158,7 +136,9 @@ function AccountSummary({ completedTrades, onAccountDataChange }) {
                   <td>${item.amount.toFixed(2)}</td>
                   <td>{item.date}</td>
                   <td>
-                    <button onClick={() => removeCashflow(item.id)}>Delete</button>
+                    <ActionButton variant="ghost" size="sm" onClick={() => removeCashflow(item.id)}>
+                      Delete
+                    </ActionButton>
                   </td>
                 </tr>
               ))}
@@ -166,30 +146,6 @@ function AccountSummary({ completedTrades, onAccountDataChange }) {
           </table>
         </div>
       )}
-    </div>
-  );
-}
-
-function SummaryCard({ label, value }) {
-  const numericValue = Number(value || 0);
-
-  return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: 16,
-        minWidth: 150,
-      }}
-    >
-      <div>{label}</div>
-      <strong
-        style={{
-          color: numericValue > 0 ? "green" : numericValue < 0 ? "red" : "black",
-        }}
-      >
-        ${numericValue.toFixed(2)}
-      </strong>
     </div>
   );
 }

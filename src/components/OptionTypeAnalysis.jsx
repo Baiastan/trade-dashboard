@@ -1,16 +1,17 @@
 import { useMemo } from "react";
 import { analyzeByOptionType } from "../utils/analyzeTrades";
 
-function OptionTypeAnalysis({ completedTrades }) {
+function OptionTypeAnalysis({ completedTrades = [], tradeSummaries = [] }) {
   const optionAnalysis = useMemo(() => {
-    return analyzeByOptionType(completedTrades);
-  }, [completedTrades]);
+    const sourceRecords = tradeSummaries.length ? tradeSummaries : completedTrades;
+    return analyzeByOptionType(sourceRecords);
+  }, [completedTrades, tradeSummaries]);
 
   return (
-    <div style={{ marginTop: 20, marginBottom: 20 }}>
+    <div className="analysis-section">
       <h3>Option Type Analysis</h3>
 
-      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+      <div className="analysis-grid">
         <AnalysisCard title="CALLS" data={optionAnalysis.call} />
         <AnalysisCard title="PUTS" data={optionAnalysis.put} />
       </div>
@@ -20,15 +21,8 @@ function OptionTypeAnalysis({ completedTrades }) {
 
 function AnalysisCard({ title, data }) {
   return (
-    <div
-      style={{
-        border: "1px solid #ccc",
-        borderRadius: 10,
-        padding: 16,
-        minWidth: 220,
-      }}
-    >
-      <h4>{title}</h4>
+    <div className="analysis-card">
+      <h4 style={{ margin: "0 0 6px" }}>{title}</h4>
       <div>Trades: {data.trades}</div>
       <div>Win Rate: {data.winRate.toFixed(1)}%</div>
       <div style={{ color: data.totalPnl > 0 ? "green" : data.totalPnl < 0 ? "red" : "black" }}>

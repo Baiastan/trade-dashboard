@@ -55,11 +55,11 @@ body {
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  text-align: left;
+  border-inline: none;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -108,4 +108,595 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+.tt-section {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.tt-controls {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tt-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.tt-view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tt-type-tabs {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.tt-view-tab {
+  border: 1px solid color-mix(in oklab, var(--border) 84%, var(--text-h) 16%);
+  background: color-mix(in oklab, var(--bg) 92%, var(--code-bg) 8%);
+  color: var(--text-h);
+  padding: 4px 9px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.tt-view-tab:hover {
+  background: color-mix(in oklab, var(--bg) 84%, var(--code-bg) 16%);
+  color: var(--text-h);
+}
+
+.tt-view-tab-active {
+  background: color-mix(in oklab, var(--text-h) 88%, var(--bg) 12%);
+  color: var(--bg);
+  border-color: color-mix(in oklab, var(--text-h) 75%, var(--border) 25%);
+}
+
+.tt-view-tab-active:hover {
+  background: color-mix(in oklab, var(--text-h) 88%, var(--bg) 12%);
+  color: var(--bg);
+}
+
+.tt-select {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font: inherit;
+}
+
+.tt-page-info {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+.tt-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
+  border: 1px solid color-mix(in oklab, var(--border) 88%, var(--text-h) 12%);
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--bg);
+}
+
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 0;
+  font-size: 15px;
+}
+
+.tt-th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: color-mix(in oklab, var(--code-bg) 80%, var(--bg) 20%);
+  color: var(--text-h);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  padding: 11px 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  white-space: nowrap;
+}
+
+.tt-index-col {
+  width: 60px;
+}
+
+.tt-row:nth-child(even) .tt-cell {
+  background: color-mix(in oklab, var(--bg) 94%, var(--code-bg) 6%);
+}
+
+.tt-row:hover .tt-cell {
+  background: color-mix(in oklab, var(--bg) 88%, var(--code-bg) 12%);
+}
+
+.tt-cell {
+  padding: 11px 14px;
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  vertical-align: top;
+}
+
+.tt-index {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.tt-right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-day-separator td {
+  background: color-mix(in oklab, var(--code-bg) 72%, var(--bg) 28%);
+  color: var(--text-h);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 8px 12px;
+  border-top: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+}
+
+.tt-day-total-row td {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: color-mix(in oklab, var(--bg) 92%, var(--code-bg) 8%);
+  padding: 6px 10px;
+}
+
+.tt-day-total-label {
+  text-align: right;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tt-day-total-value {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-note-input {
+  width: min(100%, 260px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg);
+  resize: vertical;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.tt-note-shell {
+  position: relative;
+  min-height: 18px;
+}
+
+.tt-note-text {
+  white-space: pre-wrap;
+  line-height: 1.35;
+  color: var(--text-h);
+  margin-top: 0;
+  padding-right: 56px;
+}
+
+.tt-note-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tt-note-actions-corner {
+  margin-top: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  gap: 3px;
+}
+
+.tt-btn {
+  border: 1px solid color-mix(in oklab, var(--border) 84%, var(--text-h) 16%);
+  background: color-mix(in oklab, var(--bg) 90%, var(--code-bg) 10%);
+  color: var(--text-h);
+  border-radius: 0;
+  padding: 4px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tt-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--bg) 82%, var(--code-bg) 18%);
+}
+
+.tt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tt-btn-ghost {
+  background: transparent;
+}
+
+.tt-btn-sm {
+  padding: 1px 7px;
+  font-size: 12px;
+  border-radius: 0;
+}
+
+.tt-icon-btn {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 10px;
+}
+
+.tt-pagination {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.tt-week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.tt-week-card {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  padding: 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.tt-week-card-profit {
+  background: color-mix(in oklab, #1f8a39 20%, var(--bg) 80%);
+}
+
+.tt-week-card-loss {
+  background: color-mix(in oklab, #b3261e 16%, var(--bg) 84%);
+}
+
+.tt-week-card-flat {
+  background: color-mix(in oklab, var(--bg) 95%, var(--code-bg) 5%);
+}
+
+.tt-week-range {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.tt-week-pnl {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+.tt-week-meta {
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.tt-week-empty {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ui-page {
+  padding: 16px;
+}
+
+.ui-upload-card {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: color-mix(in oklab, var(--bg) 95%, var(--code-bg) 5%);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.ui-upload-header h2 {
+  margin: 0;
+}
+
+.ui-upload-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ui-upload-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ui-file-input-hidden {
+  display: none;
+}
+
+.ui-upload-file-name {
+  font-size: 13px;
+  color: var(--text-h);
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  padding: 5px 8px;
+  min-width: 220px;
+  max-width: 520px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-upload-stats {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ui-upload-stat {
+  font-size: 12px;
+  color: var(--text-h);
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  padding: 2px 8px;
+}
+
+.ui-upload-stat-highlight {
+  font-size: 12px;
+  color: var(--text-h);
+  border: 1px solid color-mix(in oklab, var(--text-h) 72%, var(--border) 28%);
+  background: color-mix(in oklab, var(--bg) 86%, var(--code-bg) 14%);
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+.ui-stock-distribution {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ui-stock-distribution-label {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ui-section {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.ui-tab-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+
+.ui-analysis-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+
+.ui-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.ui-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.ui-input,
+.ui-select {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  color: var(--text-h);
+  padding: 7px 10px;
+  min-height: 34px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.ui-input:focus,
+.ui-select:focus {
+  outline: 1px solid color-mix(in oklab, var(--text-h) 35%, var(--accent) 65%);
+  outline-offset: 0;
+}
+
+.ui-btn {
+  border: 1px solid color-mix(in oklab, var(--border) 84%, var(--text-h) 16%);
+  background: color-mix(in oklab, var(--bg) 90%, var(--code-bg) 10%);
+  color: var(--text-h);
+  padding: 6px 10px;
+  min-height: 32px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ui-btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--bg) 82%, var(--code-bg) 18%);
+}
+
+.ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn-ghost {
+  background: transparent;
+}
+
+.ui-btn-primary {
+  background: color-mix(in oklab, var(--text-h) 88%, var(--bg) 12%);
+  color: var(--bg);
+  border-color: color-mix(in oklab, var(--text-h) 75%, var(--border) 25%);
+}
+
+.ui-btn-primary:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--text-h) 78%, var(--bg) 22%);
+}
+
+.ui-tab-row .ui-btn-ghost {
+  background: color-mix(in oklab, var(--bg) 94%, var(--code-bg) 6%);
+}
+
+.ui-btn-md {
+  font-size: 14px;
+}
+
+.ui-btn-sm {
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.ui-card-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.ui-summary-card {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  padding: 12px;
+  min-width: 170px;
+}
+
+.ui-summary-label {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ui-summary-value {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.analysis-section {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.analysis-section h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.analysis-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.analysis-card {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  padding: 8px 10px;
+  min-width: 130px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.analysis-card strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.progress-chart-wrap {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  padding: 12px 12px 8px;
+}
+
+.progress-chart {
+  width: 100%;
+  height: auto;
+  color: var(--text);
+  display: block;
+}
+
+.progress-chart-axis-label {
+  font-size: 11px;
+  fill: currentColor;
+}
+
+.progress-chart-legend {
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.progress-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.progress-legend-swatch {
+  width: 16px;
+  height: 3px;
+  display: inline-block;
+}
+
+.progress-legend-swatch-equity {
+  background: #0b7a2a;
+}
+
+.progress-legend-swatch-deposits {
+  background: #6b7280;
 }
