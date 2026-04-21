@@ -38,6 +38,7 @@ app.get("/api/notes", (_req, res) => {
   const notes = readJsonState("notes", {
     tradeSummaryNotes: {},
     tradeSummaryStrategies: {},
+    strategyOptions: [],
     dayNotes: {},
   });
   res.json(notes);
@@ -54,6 +55,7 @@ app.put("/api/notes", (req, res) => {
       payload.tradeSummaryStrategies && typeof payload.tradeSummaryStrategies === "object"
         ? payload.tradeSummaryStrategies
         : {},
+    strategyOptions: Array.isArray(payload.strategyOptions) ? payload.strategyOptions : [],
     dayNotes: payload.dayNotes && typeof payload.dayNotes === "object" ? payload.dayNotes : {},
   };
   writeJsonState("notes", notes);

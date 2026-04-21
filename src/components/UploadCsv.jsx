@@ -12,7 +12,17 @@ import TradeBehaviorStats from "./TradeBehaviorStats";
 import TradeCostStats from "./TradeCostStats";
 import { ActionButton } from "./ui/FormControls";
 import AccountProgressChart from "./AccountProgressChart";
+import StrategyAnalysis from "./StrategyAnalysis";
+import StrategyManager from "./StrategyManager";
 import { fetchAccountData, fetchNotes, saveAccountData, saveNotes } from "../api/storageApi";
+
+const DEFAULT_STRATEGY_OPTIONS = [
+  "Bull Flag",
+  "Bear Flag",
+  "Trend Breakout",
+  "Put Pull Back Entry",
+  "Long Pull Back Entry",
+];
 
 function UploadCsv() {
   const [rows, setRows] = useState([]);
@@ -34,6 +44,8 @@ function UploadCsv() {
   });
   const [tradeSummaryNotes, setTradeSummaryNotes] = useState({});
   const [tradeSummaryStrategies, setTradeSummaryStrategies] = useState({});
+  const [strategyAnalysisMap, setStrategyAnalysisMap] = useState({});
+  const [strategyOptions, setStrategyOptions] = useState(DEFAULT_STRATEGY_OPTIONS);
   const [dayNotes, setDayNotes] = useState({});
   const [storageReady, setStorageReady] = useState(false);
   const [storageMode, setStorageMode] = useState("backend");
@@ -88,6 +100,16 @@ function UploadCsv() {
             ? remoteNotes.tradeSummaryStrategies
             : {},
         );
+        setStrategyAnalysisMap(
+          remoteNotes?.tradeSummaryStrategies && typeof remoteNotes.tradeSummaryStrategies === "object"
+            ? remoteNotes.tradeSummaryStrategies
+            : {},
+        );
+        setStrategyOptions(
+          Array.isArray(remoteNotes?.strategyOptions) && remoteNotes.strategyOptions.length
+            ? remoteNotes.strategyOptions
+            : DEFAULT_STRATEGY_OPTIONS,
+        );
         setDayNotes(remoteNotes?.dayNotes && typeof remoteNotes.dayNotes === "object" ? remoteNotes.dayNotes : {});
         setStorageMode("backend");
       } catch (error) {
@@ -98,6 +120,7 @@ function UploadCsv() {
         const savedCashflows = localStorage.getItem("cashflows");
         const savedSummaryNotes = localStorage.getItem("trade-dashboard.tradeSummaryNotes");
         const savedStrategies = localStorage.getItem("trade-dashboard.tradeSummaryStrategies");
+        const savedStrategyOptions = localStorage.getItem("trade-dashboard.strategyOptions");
         const savedDayNotes = localStorage.getItem("trade-dashboard.dayNotes");
 
         setAccountData((prev) => ({
@@ -108,7 +131,10 @@ function UploadCsv() {
           hasBrokerBalance: brokerBalanceRaw !== "",
         }));
         setTradeSummaryNotes(savedSummaryNotes ? JSON.parse(savedSummaryNotes) : {});
-        setTradeSummaryStrategies(savedStrategies ? JSON.parse(savedStrategies) : {});
+        const parsedStrategies = savedStrategies ? JSON.parse(savedStrategies) : {};
+        setTradeSummaryStrategies(parsedStrategies);
+        setStrategyAnalysisMap(parsedStrategies);
+        setStrategyOptions(savedStrategyOptions ? JSON.parse(savedStrategyOptions) : DEFAULT_STRATEGY_OPTIONS);
         setDayNotes(savedDayNotes ? JSON.parse(savedDayNotes) : {});
         setStorageMode("local");
       } finally {
@@ -145,6 +171,7 @@ function UploadCsv() {
     const payload = {
       tradeSummaryNotes,
       tradeSummaryStrategies,
+      strategyOptions,
       dayNotes,
     };
 
@@ -156,8 +183,9 @@ function UploadCsv() {
 
     localStorage.setItem("trade-dashboard.tradeSummaryNotes", JSON.stringify(tradeSummaryNotes || {}));
     localStorage.setItem("trade-dashboard.tradeSummaryStrategies", JSON.stringify(tradeSummaryStrategies || {}));
+    localStorage.setItem("trade-dashboard.strategyOptions", JSON.stringify(strategyOptions || []));
     localStorage.setItem("trade-dashboard.dayNotes", JSON.stringify(dayNotes || {}));
-  }, [tradeSummaryNotes, tradeSummaryStrategies, dayNotes, storageReady, storageMode]);
+  }, [tradeSummaryNotes, tradeSummaryStrategies, strategyOptions, dayNotes, storageReady, storageMode]);
 
   const analysisStocks = useMemo(() => {
     const source = tradeSummaries.length ? tradeSummaries : completedTrades;
@@ -284,6 +312,7 @@ function UploadCsv() {
             <>
               <TradeStats completedTrades={filteredCompletedTrades} tradeSummaries={filteredTradeSummaries} />
               <OptionTypeAnalysis completedTrades={filteredCompletedTrades} tradeSummaries={filteredTradeSummaries} />
+              <StrategyAnalysis tradeSummaries={filteredTradeSummaries} strategyMap={strategyAnalysisMap} />
             </>
           )}
           <TradeBehaviorStats tradeSummaries={filteredTradeSummaries} />
@@ -295,9 +324,11 @@ function UploadCsv() {
               tradeSummaries={tradeSummaries}
               tradeSummaryNotes={tradeSummaryNotes}
               tradeSummaryStrategies={tradeSummaryStrategies}
+              strategyOptions={strategyOptions}
               dayNotes={dayNotes}
               onTradeSummaryNotesChange={setTradeSummaryNotes}
               onTradeSummaryStrategiesChange={setTradeSummaryStrategies}
+              onStrategyOptionsChange={setStrategyOptions}
               onDayNotesChange={setDayNotes}
             />
           )}
@@ -324,6 +355,12 @@ function UploadCsv() {
                 hasBrokerBalance: String(balanceInput || "").trim() !== "",
               }))
             }
+          />
+          <StrategyManager
+            strategyOptions={strategyOptions}
+            strategyMap={tradeSummaryStrategies}
+            onStrategyOptionsChange={setStrategyOptions}
+            onStrategyMapChange={setTradeSummaryStrategies}
           />
         </>
       )}

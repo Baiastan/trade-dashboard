@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { getTradeSummaryStorageKey } from "../utils/getTradeSummaryStorageKey";
 
 const completedColumns = [
   { key: "underlying", label: "STOCK" },
@@ -105,18 +106,6 @@ function getIsoDateString(date) {
   return `${year}-${month}-${day}`;
 }
 
-function getTradeSummaryNoteKey(trade) {
-  return [
-    trade?.symbol ?? "",
-    trade?.entryTime ?? "",
-    trade?.exitTime ?? "",
-    trade?.qty ?? "",
-    trade?.avgEntry ?? "",
-    trade?.avgExit ?? "",
-    trade?.pnl ?? "",
-  ].join("|");
-}
-
 function isRightAlignedColumn(columnKey) {
   return [
     "qty",
@@ -142,9 +131,11 @@ function TradesTable({
   tradeSummaries = [],
   tradeSummaryNotes = {},
   tradeSummaryStrategies = {},
+  strategyOptions = [],
   dayNotes = {},
   onTradeSummaryNotesChange,
   onTradeSummaryStrategiesChange,
+  onStrategyOptionsChange,
   onDayNotesChange,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -154,6 +145,8 @@ function TradesTable({
   const [typeFilter, setTypeFilter] = useState("all");
   const [completedTradeNotes, setCompletedTradeNotes] = useState(tradeSummaryNotes);
   const [tradeStrategies, setTradeStrategies] = useState(tradeSummaryStrategies);
+  const [tradeStrategyDrafts, setTradeStrategyDrafts] = useState(tradeSummaryStrategies);
+  const [strategySaveSuccess, setStrategySaveSuccess] = useState({});
   const [dayNotesState, setDayNotesState] = useState(dayNotes);
   const [completedTradeDrafts, setCompletedTradeDrafts] = useState({});
   const [dayNoteDrafts, setDayNoteDrafts] = useState(dayNotes);
@@ -167,6 +160,7 @@ function TradesTable({
 
   useEffect(() => {
     setTradeStrategies(tradeSummaryStrategies || {});
+    setTradeStrategyDrafts(tradeSummaryStrategies || {});
   }, [tradeSummaryStrategies]);
 
   useEffect(() => {
@@ -381,6 +375,38 @@ function TradesTable({
     onDayNotesChange?.(next);
   };
 
+  const saveTradeStrategy = (strategyKey) => {
+    const draftValue = String(tradeStrategyDrafts[strategyKey] || "");
+    const trimmedValue = draftValue.trim();
+    const next = { ...tradeStrategies };
+
+    if (trimmedValue) {
+      next[strategyKey] = trimmedValue;
+    } else {
+      delete next[strategyKey];
+    }
+
+    setTradeStrategies(next);
+    setTradeStrategyDrafts((prev) => ({
+      ...prev,
+      [strategyKey]: trimmedValue,
+    }));
+    setStrategySaveSuccess((prev) => ({ ...prev, [strategyKey]: true }));
+    globalThis.setTimeout(() => {
+      setStrategySaveSuccess((prev) => ({ ...prev, [strategyKey]: false }));
+    }, 1200);
+    onTradeSummaryStrategiesChange?.(next);
+
+    if (trimmedValue) {
+      const exists = strategySuggestions.some(
+        (item) => String(item).trim().toLowerCase() === trimmedValue.toLowerCase(),
+      );
+      if (!exists) {
+        onStrategyOptionsChange?.([...strategySuggestions, trimmedValue]);
+      }
+    }
+  };
+
   const viewOptions = [
     { value: "summary", label: "Trade Summary" },
     { value: "weekly", label: "Weekly P&L" },
@@ -388,13 +414,7 @@ function TradesTable({
     { value: "completed", label: "Completed Trades" },
     { value: "fills", label: "Filled Rows" },
   ];
-  const strategySuggestions = [
-    "Bull Flag",
-    "Bear Flag",
-    "Trend Breakout",
-    "Put Pull Back Entry",
-    "Long Pull Back Entry",
-  ];
+  const strategySuggestions = Array.isArray(strategyOptions) ? strategyOptions : [];
 
   return (
     <div className="tt-section">
@@ -575,7 +595,7 @@ function TradesTable({
                       }
 
                     if (col.key === "note" && viewMode === "summary") {
-                      const noteKey = getTradeSummaryNoteKey(row);
+                      const noteKey = getTradeSummaryStorageKey(row);
                       const savedNoteValue = completedTradeNotes[noteKey] || "";
                       const draftNoteValue = completedTradeDrafts[noteKey] ?? savedNoteValue;
                       const isEditing = Boolean(editingCompletedNotes[noteKey]);
@@ -693,28 +713,37 @@ function TradesTable({
                     }
 
                     if (col.key === "strategy" && viewMode === "summary") {
-                      const strategyKey = getTradeSummaryNoteKey(row);
-                      const strategyValue = tradeStrategies[strategyKey] || "";
+                      const strategyKey = getTradeSummaryStorageKey(row);
+                      const strategyValue = tradeStrategyDrafts[strategyKey] ?? tradeStrategies[strategyKey] ?? "";
+                      const savedValue = tradeStrategies[strategyKey] || "";
+                      const hasChanged = strategyValue.trim() !== savedValue.trim();
+                      const savedJustNow = Boolean(strategySaveSuccess[strategyKey]);
 
                       return (
                         <td key={col.key} className="tt-cell tt-strategy-cell">
-                          <input
-                            className="tt-strategy-input"
-                            list="tt-strategy-options"
-                            value={strategyValue}
-                            onChange={(event) => {
-                              const nextValue = event.target.value;
-                              const next = { ...tradeStrategies };
-                              if (nextValue.trim()) {
-                                next[strategyKey] = nextValue;
-                              } else {
-                                delete next[strategyKey];
+                          <div className="tt-strategy-wrap">
+                            <input
+                              className="tt-strategy-input"
+                              list="tt-strategy-options"
+                              value={strategyValue}
+                              onChange={(event) =>
+                                setTradeStrategyDrafts((prev) => ({
+                                  ...prev,
+                                  [strategyKey]: event.target.value,
+                                }))
                               }
-                              setTradeStrategies(next);
-                              onTradeSummaryStrategiesChange?.(next);
-                            }}
-                            placeholder="Select or type strategy"
-                          />
+                              placeholder="Select or type strategy"
+                            />
+                            <button
+                              className={`tt-btn tt-btn-sm tt-icon-btn ${savedJustNow ? "tt-icon-btn-success" : ""}`}
+                              title="Save strategy"
+                              aria-label="Save strategy"
+                              onClick={() => saveTradeStrategy(strategyKey)}
+                              disabled={!hasChanged}
+                            >
+                              <span aria-hidden="true">✓</span>
+                            </button>
+                          </div>
                         </td>
                       );
                     }

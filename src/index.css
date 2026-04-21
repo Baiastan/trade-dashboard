@@ -357,6 +357,12 @@ code {
   font-size: 10px;
 }
 
+.tt-icon-btn-success {
+  background: #198754;
+  border-color: #198754;
+  color: #fff;
+}
+
 .tt-note-cell {
   width: 30%;
   max-width: 420px;
@@ -377,6 +383,13 @@ code {
   font: inherit;
   font-size: 12px;
   box-sizing: border-box;
+}
+
+.tt-strategy-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
 }
 
 .tt-pagination {
@@ -677,6 +690,86 @@ code {
   display: block;
   margin-top: 2px;
   font-size: 15px;
+}
+
+.strategy-panel {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.strategy-panel h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.strategy-meta {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.strategy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.strategy-item {
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: color-mix(in oklab, var(--bg) 95%, var(--code-bg) 5%);
+  padding: 8px;
+}
+
+.strategy-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin-bottom: 4px;
+}
+
+.strategy-item-row {
+  font-size: 12px;
+  color: var(--text-h);
+}
+
+.strategy-empty {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.strategy-manager-add {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.strategy-manager-add .ui-field {
+  min-width: 280px;
+}
+
+.strategy-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.strategy-manager-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto auto;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: color-mix(in oklab, var(--bg) 95%, var(--code-bg) 5%);
+  padding: 8px;
+}
+
+.strategy-manager-usage {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .progress-chart-wrap {
