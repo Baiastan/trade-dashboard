@@ -52,6 +52,8 @@ function UploadCsv() {
   const [activeTab, setActiveTab] = useState("analysis");
   const [analysisStockFilter, setAnalysisStockFilter] = useState("all");
   const fileInputRef = useRef(null);
+  const skipNextAccountSaveRef = useRef(false);
+  const skipNextNotesSaveRef = useRef(false);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -87,6 +89,9 @@ function UploadCsv() {
         const [remoteAccount, remoteNotes] = await Promise.all([fetchAccountData(), fetchNotes()]);
         if (!active) return;
 
+        skipNextAccountSaveRef.current = true;
+        skipNextNotesSaveRef.current = true;
+
         setAccountData((prev) => ({
           ...prev,
           initialFund: Number(remoteAccount?.initialFund || 0),
@@ -115,6 +120,9 @@ function UploadCsv() {
       } catch (error) {
         console.warn("Backend storage unavailable, using localStorage fallback.", error);
         if (!active) return;
+
+        skipNextAccountSaveRef.current = true;
+        skipNextNotesSaveRef.current = true;
 
         const brokerBalanceRaw = localStorage.getItem("brokerBalance") || "";
         const savedCashflows = localStorage.getItem("cashflows");
@@ -151,7 +159,9 @@ function UploadCsv() {
   useEffect(() => {
     if (!storageReady) return;
 
-    if (storageMode === "backend") {
+    if (skipNextAccountSaveRef.current) {
+      skipNextAccountSaveRef.current = false;
+    } else if (storageMode === "backend") {
       saveAccountData(accountData).catch((error) => {
         console.warn("Failed to persist account data to backend.", error);
       });
@@ -175,7 +185,9 @@ function UploadCsv() {
       dayNotes,
     };
 
-    if (storageMode === "backend") {
+    if (skipNextNotesSaveRef.current) {
+      skipNextNotesSaveRef.current = false;
+    } else if (storageMode === "backend") {
       saveNotes(payload).catch((error) => {
         console.warn("Failed to persist notes to backend.", error);
       });

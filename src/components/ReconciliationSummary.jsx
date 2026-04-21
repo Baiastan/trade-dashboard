@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FormField, SummaryMetricCard, TextInput } from "./ui/FormControls";
+
+function formatBrokerInput(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "";
+  return String(numeric);
+}
 
 function ReconciliationSummary({
   initialFund,
@@ -8,12 +15,23 @@ function ReconciliationSummary({
   brokerBalanceValue = "",
   onBrokerBalanceChange,
 }) {
-  const [brokerBalanceInput, setBrokerBalanceInput] = useState(String(brokerBalanceValue || ""));
+  const [brokerBalanceInput, setBrokerBalanceInput] = useState(formatBrokerInput(brokerBalanceValue));
+  const focusedRef = useRef(false);
 
   const brokerBalance = Number(brokerBalanceInput || 0);
 
   useEffect(() => {
-    setBrokerBalanceInput(String(brokerBalanceValue || ""));
+    if (focusedRef.current) return;
+    const incoming = formatBrokerInput(brokerBalanceValue);
+    setBrokerBalanceInput((prev) => {
+      const prevIsEmpty = prev === "";
+      const incomingIsEmpty = incoming === "";
+      if (prevIsEmpty && incomingIsEmpty) return prev;
+      const prevNumeric = Number(prev || 0);
+      const incomingNumeric = Number(incoming || 0);
+      if (!prevIsEmpty && !incomingIsEmpty && prevNumeric === incomingNumeric) return prev;
+      return incoming;
+    });
   }, [brokerBalanceValue]);
 
   useEffect(() => {
@@ -47,6 +65,12 @@ function ReconciliationSummary({
             step="0.01"
             value={brokerBalanceInput}
             onChange={(e) => setBrokerBalanceInput(e.target.value)}
+            onFocus={() => {
+              focusedRef.current = true;
+            }}
+            onBlur={() => {
+              focusedRef.current = false;
+            }}
             placeholder="e.g. 1653.40"
           />
         </FormField>

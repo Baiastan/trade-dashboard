@@ -1,22 +1,42 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionButton, FormField, FormRow, SelectInput, SummaryMetricCard, TextInput } from "./ui/FormControls";
 
+function formatNumberForInput(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "";
+  return String(numeric);
+}
+
 function AccountSummary({ completedTrades, onAccountDataChange, initialFundValue = 0, cashflowsValue = [] }) {
-  const [initialFundInput, setInitialFundInput] = useState(String(initialFundValue || ""));
+  const [initialFundInput, setInitialFundInput] = useState(formatNumberForInput(initialFundValue));
   const [cashflows, setCashflows] = useState(Array.isArray(cashflowsValue) ? cashflowsValue : []);
 
   const [amountInput, setAmountInput] = useState("");
   const [type, setType] = useState("deposit");
   const [date, setDate] = useState("");
 
+  const initialFundFocusedRef = useRef(false);
   const initialFund = Number(initialFundInput || 0);
 
   useEffect(() => {
-    setInitialFundInput(String(initialFundValue || ""));
+    if (initialFundFocusedRef.current) return;
+    const incoming = formatNumberForInput(initialFundValue);
+    setInitialFundInput((prev) => {
+      const prevNumeric = Number(prev || 0);
+      const incomingNumeric = Number(incoming || 0);
+      if (prevNumeric === incomingNumeric) return prev;
+      return incoming;
+    });
   }, [initialFundValue]);
 
   useEffect(() => {
-    setCashflows(Array.isArray(cashflowsValue) ? cashflowsValue : []);
+    setCashflows((prev) => {
+      const next = Array.isArray(cashflowsValue) ? cashflowsValue : [];
+      if (prev === next) return prev;
+      if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+      return next;
+    });
   }, [cashflowsValue]);
 
   useEffect(() => {
@@ -73,6 +93,12 @@ function AccountSummary({ completedTrades, onAccountDataChange, initialFundValue
             step="0.01"
             value={initialFundInput}
             onChange={(e) => setInitialFundInput(e.target.value)}
+            onFocus={() => {
+              initialFundFocusedRef.current = true;
+            }}
+            onBlur={() => {
+              initialFundFocusedRef.current = false;
+            }}
             placeholder="e.g. 2650"
           />
         </FormField>

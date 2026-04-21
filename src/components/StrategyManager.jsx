@@ -52,7 +52,10 @@ function StrategyManager({ strategyOptions = [], strategyMap = {}, onStrategyOpt
 
     onStrategyOptionsChange?.(nextOptions);
     onStrategyMapChange?.(nextMap);
-    setDrafts((prev) => ({ ...prev, [oldName]: nextName }));
+    setDrafts((prev) => {
+      const { [oldName]: _removed, ...rest } = prev;
+      return { ...rest, [nextName]: nextName };
+    });
   };
 
   const deleteStrategy = (targetName) => {
@@ -68,6 +71,15 @@ function StrategyManager({ strategyOptions = [], strategyMap = {}, onStrategyOpt
 
     onStrategyOptionsChange?.(nextOptions);
     onStrategyMapChange?.(nextMap);
+    setDrafts((prev) => {
+      const next = { ...prev };
+      for (const key of Object.keys(next)) {
+        if (normalize(key).toLowerCase() === target.toLowerCase()) {
+          delete next[key];
+        }
+      }
+      return next;
+    });
   };
 
   return (

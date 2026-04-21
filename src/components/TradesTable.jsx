@@ -154,19 +154,48 @@ function TradesTable({
   const [editingDayNotes, setEditingDayNotes] = useState({});
 
   useEffect(() => {
-    setCompletedTradeNotes(tradeSummaryNotes || {});
-    setCompletedTradeDrafts(tradeSummaryNotes || {});
-  }, [tradeSummaryNotes]);
+    const safe = tradeSummaryNotes || {};
+    setCompletedTradeNotes(safe);
+    setCompletedTradeDrafts((prev) => {
+      const next = { ...safe };
+      for (const [key, value] of Object.entries(prev)) {
+        if (editingCompletedNotes[key]) {
+          next[key] = value;
+        }
+      }
+      return next;
+    });
+  }, [tradeSummaryNotes, editingCompletedNotes]);
 
   useEffect(() => {
-    setTradeStrategies(tradeSummaryStrategies || {});
-    setTradeStrategyDrafts(tradeSummaryStrategies || {});
+    const safe = tradeSummaryStrategies || {};
+    setTradeStrategies(safe);
+    setTradeStrategyDrafts((prev) => {
+      const next = { ...safe };
+      for (const [key, value] of Object.entries(prev)) {
+        const draftStr = String(value ?? "");
+        const savedStr = String(safe[key] ?? "");
+        if (draftStr !== savedStr) {
+          next[key] = value;
+        }
+      }
+      return next;
+    });
   }, [tradeSummaryStrategies]);
 
   useEffect(() => {
-    setDayNotesState(dayNotes || {});
-    setDayNoteDrafts(dayNotes || {});
-  }, [dayNotes]);
+    const safe = dayNotes || {};
+    setDayNotesState(safe);
+    setDayNoteDrafts((prev) => {
+      const next = { ...safe };
+      for (const [key, value] of Object.entries(prev)) {
+        if (editingDayNotes[key]) {
+          next[key] = value;
+        }
+      }
+      return next;
+    });
+  }, [dayNotes, editingDayNotes]);
 
   const viewSourceRecords = useMemo(() => {
     let source = [];
@@ -375,6 +404,8 @@ function TradesTable({
     onDayNotesChange?.(next);
   };
 
+  const strategySuggestions = Array.isArray(strategyOptions) ? strategyOptions : [];
+
   const saveTradeStrategy = (strategyKey) => {
     const draftValue = String(tradeStrategyDrafts[strategyKey] || "");
     const trimmedValue = draftValue.trim();
@@ -414,7 +445,6 @@ function TradesTable({
     { value: "completed", label: "Completed Trades" },
     { value: "fills", label: "Filled Rows" },
   ];
-  const strategySuggestions = Array.isArray(strategyOptions) ? strategyOptions : [];
 
   return (
     <div className="tt-section">

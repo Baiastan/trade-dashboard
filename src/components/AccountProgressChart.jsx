@@ -14,20 +14,29 @@ function toDayKey(value) {
   return `${year}-${month}-${day}`;
 }
 
+function dayKeyToLocalDate(dayKey) {
+  if (typeof dayKey !== "string") return null;
+  const parts = dayKey.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((part) => Number.isNaN(part))) return null;
+  const [year, month, day] = parts;
+  return new Date(year, month - 1, day);
+}
+
 function formatMoney(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
 
 function formatShortDate(dayKey) {
-  const date = new Date(dayKey);
+  const date = dayKeyToLocalDate(dayKey);
+  if (!date) return dayKey;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function getPreviousDayKey(dayKey) {
-  const date = new Date(dayKey);
-  if (Number.isNaN(date.getTime())) return dayKey;
+  const date = dayKeyToLocalDate(dayKey);
+  if (!date) return dayKey;
   date.setDate(date.getDate() - 1);
-  return toDayKey(date.toISOString());
+  return toDayKey(date);
 }
 
 function buildLinePath(points, toX, toY) {
