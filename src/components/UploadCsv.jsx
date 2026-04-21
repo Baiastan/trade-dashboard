@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import { parseWebullRows } from "../utils/parseWebullCsv";
 import { buildCompletedTrades } from "../utils/buildCompletedTrades";
@@ -223,6 +223,44 @@ function UploadCsv() {
       .sort((a, b) => b.count - a.count || String(a.ticker).localeCompare(String(b.ticker)));
   }, [tradeSummaries, completedTrades]);
 
+  const handleAccountDataChange = useCallback((nextData) => {
+    setAccountData((prev) => {
+      const nextInitialFund = Number(nextData?.initialFund ?? prev.initialFund ?? 0);
+      const nextCashflows = Array.isArray(nextData?.cashflows) ? nextData.cashflows : prev.cashflows || [];
+      const sameInitialFund = Number(prev.initialFund || 0) === nextInitialFund;
+      const sameCashflows = JSON.stringify(prev.cashflows || []) === JSON.stringify(nextCashflows);
+
+      if (sameInitialFund && sameCashflows) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        initialFund: nextInitialFund,
+        cashflows: nextCashflows,
+      };
+    });
+  }, []);
+
+  const handleBrokerBalanceChange = useCallback((balanceInput) => {
+    setAccountData((prev) => {
+      const nextBrokerBalance = Number(balanceInput || 0);
+      const nextHasBrokerBalance = String(balanceInput || "").trim() !== "";
+      const sameBrokerBalance = Number(prev.brokerBalance || 0) === nextBrokerBalance;
+      const sameHasBrokerBalance = Boolean(prev.hasBrokerBalance) === nextHasBrokerBalance;
+
+      if (sameBrokerBalance && sameHasBrokerBalance) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        brokerBalance: nextBrokerBalance,
+        hasBrokerBalance: nextHasBrokerBalance,
+      };
+    });
+  }, []);
+
   return (
     <div className="ui-page">
       <div className="ui-upload-card">
@@ -339,7 +377,7 @@ function UploadCsv() {
         <>
           <AccountSummary
             completedTrades={completedTrades}
-            onAccountDataChange={(nextData) => setAccountData((prev) => ({ ...prev, ...nextData }))}
+            onAccountDataChange={handleAccountDataChange}
             initialFundValue={accountData.initialFund}
             cashflowsValue={accountData.cashflows}
           />
@@ -348,13 +386,7 @@ function UploadCsv() {
             cashflows={accountData.cashflows}
             completedTrades={completedTrades}
             brokerBalanceValue={accountData.hasBrokerBalance ? accountData.brokerBalance : ""}
-            onBrokerBalanceChange={(balanceInput) =>
-              setAccountData((prev) => ({
-                ...prev,
-                brokerBalance: Number(balanceInput || 0),
-                hasBrokerBalance: String(balanceInput || "").trim() !== "",
-              }))
-            }
+            onBrokerBalanceChange={handleBrokerBalanceChange}
           />
           <StrategyManager
             strategyOptions={strategyOptions}
