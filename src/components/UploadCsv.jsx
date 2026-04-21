@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import { parseWebullRows } from "../utils/parseWebullCsv";
 import { buildCompletedTrades } from "../utils/buildCompletedTrades";
@@ -12,6 +12,7 @@ import TradeBehaviorStats from "./TradeBehaviorStats";
 import TradeCostStats from "./TradeCostStats";
 import { ActionButton } from "./ui/FormControls";
 import AccountProgressChart from "./AccountProgressChart";
+import { fetchAccountData, fetchNotes, saveAccountData, saveNotes } from "../api/storageApi";
 
 function UploadCsv() {
   const [rows, setRows] = useState([]);
@@ -31,6 +32,11 @@ function UploadCsv() {
       hasBrokerBalance: brokerBalanceRaw !== "",
     };
   });
+  const [tradeSummaryNotes, setTradeSummaryNotes] = useState({});
+  const [tradeSummaryStrategies, setTradeSummaryStrategies] = useState({});
+  const [dayNotes, setDayNotes] = useState({});
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageMode, setStorageMode] = useState("backend");
   const [activeTab, setActiveTab] = useState("analysis");
   const [analysisStockFilter, setAnalysisStockFilter] = useState("all");
   const fileInputRef = useRef(null);
@@ -60,6 +66,98 @@ function UploadCsv() {
       },
     });
   };
+
+  useEffect(() => {
+    let active = true;
+
+    async function hydratePersistence() {
+      try {
+        const [remoteAccount, remoteNotes] = await Promise.all([fetchAccountData(), fetchNotes()]);
+        if (!active) return;
+
+        setAccountData((prev) => ({
+          ...prev,
+          initialFund: Number(remoteAccount?.initialFund || 0),
+          cashflows: Array.isArray(remoteAccount?.cashflows) ? remoteAccount.cashflows : [],
+          brokerBalance: Number(remoteAccount?.brokerBalance || 0),
+          hasBrokerBalance: Boolean(remoteAccount?.hasBrokerBalance),
+        }));
+        setTradeSummaryNotes(remoteNotes?.tradeSummaryNotes && typeof remoteNotes.tradeSummaryNotes === "object" ? remoteNotes.tradeSummaryNotes : {});
+        setTradeSummaryStrategies(
+          remoteNotes?.tradeSummaryStrategies && typeof remoteNotes.tradeSummaryStrategies === "object"
+            ? remoteNotes.tradeSummaryStrategies
+            : {},
+        );
+        setDayNotes(remoteNotes?.dayNotes && typeof remoteNotes.dayNotes === "object" ? remoteNotes.dayNotes : {});
+        setStorageMode("backend");
+      } catch (error) {
+        console.warn("Backend storage unavailable, using localStorage fallback.", error);
+        if (!active) return;
+
+        const brokerBalanceRaw = localStorage.getItem("brokerBalance") || "";
+        const savedCashflows = localStorage.getItem("cashflows");
+        const savedSummaryNotes = localStorage.getItem("trade-dashboard.tradeSummaryNotes");
+        const savedStrategies = localStorage.getItem("trade-dashboard.tradeSummaryStrategies");
+        const savedDayNotes = localStorage.getItem("trade-dashboard.dayNotes");
+
+        setAccountData((prev) => ({
+          ...prev,
+          initialFund: Number(localStorage.getItem("initialFund") || 0),
+          cashflows: savedCashflows ? JSON.parse(savedCashflows) : [],
+          brokerBalance: Number(brokerBalanceRaw || 0),
+          hasBrokerBalance: brokerBalanceRaw !== "",
+        }));
+        setTradeSummaryNotes(savedSummaryNotes ? JSON.parse(savedSummaryNotes) : {});
+        setTradeSummaryStrategies(savedStrategies ? JSON.parse(savedStrategies) : {});
+        setDayNotes(savedDayNotes ? JSON.parse(savedDayNotes) : {});
+        setStorageMode("local");
+      } finally {
+        if (active) setStorageReady(true);
+      }
+    }
+
+    hydratePersistence();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+
+    if (storageMode === "backend") {
+      saveAccountData(accountData).catch((error) => {
+        console.warn("Failed to persist account data to backend.", error);
+      });
+    }
+
+    localStorage.setItem("initialFund", String(accountData.initialFund || ""));
+    localStorage.setItem("cashflows", JSON.stringify(accountData.cashflows || []));
+    localStorage.setItem(
+      "brokerBalance",
+      accountData.hasBrokerBalance ? String(accountData.brokerBalance ?? "") : "",
+    );
+  }, [accountData, storageReady, storageMode]);
+
+  useEffect(() => {
+    if (!storageReady) return;
+
+    const payload = {
+      tradeSummaryNotes,
+      tradeSummaryStrategies,
+      dayNotes,
+    };
+
+    if (storageMode === "backend") {
+      saveNotes(payload).catch((error) => {
+        console.warn("Failed to persist notes to backend.", error);
+      });
+    }
+
+    localStorage.setItem("trade-dashboard.tradeSummaryNotes", JSON.stringify(tradeSummaryNotes || {}));
+    localStorage.setItem("trade-dashboard.tradeSummaryStrategies", JSON.stringify(tradeSummaryStrategies || {}));
+    localStorage.setItem("trade-dashboard.dayNotes", JSON.stringify(dayNotes || {}));
+  }, [tradeSummaryNotes, tradeSummaryStrategies, dayNotes, storageReady, storageMode]);
 
   const analysisStocks = useMemo(() => {
     const source = tradeSummaries.length ? tradeSummaries : completedTrades;
@@ -191,7 +289,17 @@ function UploadCsv() {
           <TradeBehaviorStats tradeSummaries={filteredTradeSummaries} />
           <TradeCostStats tradeSummaries={filteredTradeSummaries} />
           {(fills.length > 0 || completedTrades.length > 0) && (
-            <TradesTable fills={fills} completedTrades={completedTrades} tradeSummaries={tradeSummaries} />
+            <TradesTable
+              fills={fills}
+              completedTrades={completedTrades}
+              tradeSummaries={tradeSummaries}
+              tradeSummaryNotes={tradeSummaryNotes}
+              tradeSummaryStrategies={tradeSummaryStrategies}
+              dayNotes={dayNotes}
+              onTradeSummaryNotesChange={setTradeSummaryNotes}
+              onTradeSummaryStrategiesChange={setTradeSummaryStrategies}
+              onDayNotesChange={setDayNotes}
+            />
           )}
         </>
       )}
@@ -201,11 +309,14 @@ function UploadCsv() {
           <AccountSummary
             completedTrades={completedTrades}
             onAccountDataChange={(nextData) => setAccountData((prev) => ({ ...prev, ...nextData }))}
+            initialFundValue={accountData.initialFund}
+            cashflowsValue={accountData.cashflows}
           />
           <ReconciliationSummary
             initialFund={accountData.initialFund}
             cashflows={accountData.cashflows}
             completedTrades={completedTrades}
+            brokerBalanceValue={accountData.hasBrokerBalance ? accountData.brokerBalance : ""}
             onBrokerBalanceChange={(balanceInput) =>
               setAccountData((prev) => ({
                 ...prev,

@@ -1,15 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { FormField, SummaryMetricCard, TextInput } from "./ui/FormControls";
 
-function ReconciliationSummary({ initialFund, cashflows, completedTrades, onBrokerBalanceChange }) {
-  const [brokerBalanceInput, setBrokerBalanceInput] = useState(() => {
-    return localStorage.getItem("brokerBalance") || "";
-  });
+function ReconciliationSummary({
+  initialFund,
+  cashflows,
+  completedTrades,
+  brokerBalanceValue = "",
+  onBrokerBalanceChange,
+}) {
+  const [brokerBalanceInput, setBrokerBalanceInput] = useState(String(brokerBalanceValue || ""));
 
   const brokerBalance = Number(brokerBalanceInput || 0);
 
   useEffect(() => {
-    localStorage.setItem("brokerBalance", brokerBalanceInput);
+    setBrokerBalanceInput(String(brokerBalanceValue || ""));
+  }, [brokerBalanceValue]);
+
+  useEffect(() => {
     onBrokerBalanceChange?.(brokerBalanceInput);
   }, [brokerBalanceInput, onBrokerBalanceChange]);
 

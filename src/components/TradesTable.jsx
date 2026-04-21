@@ -31,6 +31,7 @@ const summaryColumns = [
   { key: "cost", label: "COST" },
   { key: "pnl", label: "P&L" },
   { key: "returnPct", label: "RETURN %" },
+  { key: "strategy", label: "STRATEGY" },
   { key: "note", label: "NOTE" },
 ];
 
@@ -43,9 +44,6 @@ const dailyColumns = [
   { key: "pnl", label: "TOTAL P&L" },
   { key: "dayNote", label: "DAY NOTE" },
 ];
-
-const SUMMARY_NOTES_STORAGE_KEY = "trade-dashboard.tradeSummaryNotes";
-const DAY_NOTES_STORAGE_KEY = "trade-dashboard.dayNotes";
 
 function getRowTime(row) {
   return row?.exitTime || row?.filledTime || row?.entryTime || null;
@@ -138,38 +136,43 @@ function isRightAlignedColumn(columnKey) {
   ].includes(columnKey);
 }
 
-function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) {
+function TradesTable({
+  fills = [],
+  completedTrades = [],
+  tradeSummaries = [],
+  tradeSummaryNotes = {},
+  tradeSummaryStrategies = {},
+  dayNotes = {},
+  onTradeSummaryNotesChange,
+  onTradeSummaryStrategiesChange,
+  onDayNotesChange,
+}) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [viewMode, setViewMode] = useState("completed");
   const [stockFilter, setStockFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [completedTradeNotes, setCompletedTradeNotes] = useState({});
-  const [dayNotes, setDayNotes] = useState({});
+  const [completedTradeNotes, setCompletedTradeNotes] = useState(tradeSummaryNotes);
+  const [tradeStrategies, setTradeStrategies] = useState(tradeSummaryStrategies);
+  const [dayNotesState, setDayNotesState] = useState(dayNotes);
   const [completedTradeDrafts, setCompletedTradeDrafts] = useState({});
-  const [dayNoteDrafts, setDayNoteDrafts] = useState({});
+  const [dayNoteDrafts, setDayNoteDrafts] = useState(dayNotes);
   const [editingCompletedNotes, setEditingCompletedNotes] = useState({});
   const [editingDayNotes, setEditingDayNotes] = useState({});
 
   useEffect(() => {
-    try {
-      const savedCompletedNotes = localStorage.getItem(SUMMARY_NOTES_STORAGE_KEY);
-      if (savedCompletedNotes) {
-        const parsedCompletedNotes = JSON.parse(savedCompletedNotes);
-        setCompletedTradeNotes(parsedCompletedNotes);
-        setCompletedTradeDrafts(parsedCompletedNotes);
-      }
+    setCompletedTradeNotes(tradeSummaryNotes || {});
+    setCompletedTradeDrafts(tradeSummaryNotes || {});
+  }, [tradeSummaryNotes]);
 
-      const savedDayNotes = localStorage.getItem(DAY_NOTES_STORAGE_KEY);
-      if (savedDayNotes) {
-        const parsedDayNotes = JSON.parse(savedDayNotes);
-        setDayNotes(parsedDayNotes);
-        setDayNoteDrafts(parsedDayNotes);
-      }
-    } catch (error) {
-      console.error("Failed to load notes from localStorage:", error);
-    }
-  }, []);
+  useEffect(() => {
+    setTradeStrategies(tradeSummaryStrategies || {});
+  }, [tradeSummaryStrategies]);
+
+  useEffect(() => {
+    setDayNotesState(dayNotes || {});
+    setDayNoteDrafts(dayNotes || {});
+  }, [dayNotes]);
 
   const viewSourceRecords = useMemo(() => {
     let source = [];
@@ -334,7 +337,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
     setCompletedTradeNotes(next);
     setCompletedTradeDrafts(nextDrafts);
     setEditingCompletedNotes((prev) => ({ ...prev, [noteKey]: false }));
-    localStorage.setItem(SUMMARY_NOTES_STORAGE_KEY, JSON.stringify(next));
+    onTradeSummaryNotesChange?.(next);
   };
 
   const deleteCompletedTradeNote = (noteKey) => {
@@ -345,12 +348,12 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
     setCompletedTradeNotes(next);
     setCompletedTradeDrafts(nextDrafts);
     setEditingCompletedNotes((prev) => ({ ...prev, [noteKey]: false }));
-    localStorage.setItem(SUMMARY_NOTES_STORAGE_KEY, JSON.stringify(next));
+    onTradeSummaryNotesChange?.(next);
   };
 
   const saveDayNote = (dayKey) => {
     const noteValue = (dayNoteDrafts[dayKey] || "").trim();
-    const next = { ...dayNotes };
+    const next = { ...dayNotesState };
     const nextDrafts = { ...dayNoteDrafts };
 
     if (!noteValue) {
@@ -361,21 +364,21 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
       nextDrafts[dayKey] = noteValue;
     }
 
-    setDayNotes(next);
+    setDayNotesState(next);
     setDayNoteDrafts(nextDrafts);
     setEditingDayNotes((prev) => ({ ...prev, [dayKey]: false }));
-    localStorage.setItem(DAY_NOTES_STORAGE_KEY, JSON.stringify(next));
+    onDayNotesChange?.(next);
   };
 
   const deleteDayNote = (dayKey) => {
-    const next = { ...dayNotes };
+    const next = { ...dayNotesState };
     const nextDrafts = { ...dayNoteDrafts };
     delete next[dayKey];
     delete nextDrafts[dayKey];
-    setDayNotes(next);
+    setDayNotesState(next);
     setDayNoteDrafts(nextDrafts);
     setEditingDayNotes((prev) => ({ ...prev, [dayKey]: false }));
-    localStorage.setItem(DAY_NOTES_STORAGE_KEY, JSON.stringify(next));
+    onDayNotesChange?.(next);
   };
 
   const viewOptions = [
@@ -384,6 +387,13 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
     { value: "daily", label: "Daily P&L" },
     { value: "completed", label: "Completed Trades" },
     { value: "fills", label: "Filled Rows" },
+  ];
+  const strategySuggestions = [
+    "Bull Flag",
+    "Bear Flag",
+    "Trend Breakout",
+    "Put Pull Back Entry",
+    "Long Pull Back Entry",
   ];
 
   return (
@@ -572,7 +582,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
 
                       if (!isEditing && savedNoteValue.trim()) {
                         return (
-                          <td key={col.key} className="tt-cell">
+                          <td key={col.key} className="tt-cell tt-note-cell">
                             <div className="tt-note-shell">
                               <div className="tt-note-actions tt-note-actions-corner">
                                 <button
@@ -606,7 +616,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
 
                       if (!isEditing) {
                         return (
-                          <td key={col.key} className="tt-cell">
+                          <td key={col.key} className="tt-cell tt-note-cell">
                             <div className="tt-note-shell">
                               <div className="tt-note-actions tt-note-actions-corner">
                                 <button
@@ -630,7 +640,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
                       }
 
                       return (
-                        <td key={col.key} className="tt-cell">
+                        <td key={col.key} className="tt-cell tt-note-cell">
                           <div className="tt-note-shell">
                             <div className="tt-note-actions tt-note-actions-corner">
                               <button
@@ -682,15 +692,42 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
                       );
                     }
 
+                    if (col.key === "strategy" && viewMode === "summary") {
+                      const strategyKey = getTradeSummaryNoteKey(row);
+                      const strategyValue = tradeStrategies[strategyKey] || "";
+
+                      return (
+                        <td key={col.key} className="tt-cell tt-strategy-cell">
+                          <input
+                            className="tt-strategy-input"
+                            list="tt-strategy-options"
+                            value={strategyValue}
+                            onChange={(event) => {
+                              const nextValue = event.target.value;
+                              const next = { ...tradeStrategies };
+                              if (nextValue.trim()) {
+                                next[strategyKey] = nextValue;
+                              } else {
+                                delete next[strategyKey];
+                              }
+                              setTradeStrategies(next);
+                              onTradeSummaryStrategiesChange?.(next);
+                            }}
+                            placeholder="Select or type strategy"
+                          />
+                        </td>
+                      );
+                    }
+
                     if (col.key === "dayNote" && viewMode === "daily") {
                       const dayKeyForNote = row.dayKey;
-                      const savedNoteValue = dayNotes[dayKeyForNote] || "";
+                      const savedNoteValue = dayNotesState[dayKeyForNote] || "";
                       const draftNoteValue = dayNoteDrafts[dayKeyForNote] ?? savedNoteValue;
                       const isEditing = Boolean(editingDayNotes[dayKeyForNote]);
 
                       if (!isEditing && savedNoteValue.trim()) {
                         return (
-                          <td key={col.key} className="tt-cell">
+                          <td key={col.key} className="tt-cell tt-note-cell">
                             <div className="tt-note-shell">
                               <div className="tt-note-actions tt-note-actions-corner">
                                 <button
@@ -724,7 +761,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
 
                       if (!isEditing) {
                         return (
-                          <td key={col.key} className="tt-cell">
+                          <td key={col.key} className="tt-cell tt-note-cell">
                             <div className="tt-note-shell">
                               <div className="tt-note-actions tt-note-actions-corner">
                                 <button
@@ -748,7 +785,7 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
                       }
 
                       return (
-                        <td key={col.key} className="tt-cell">
+                        <td key={col.key} className="tt-cell tt-note-cell">
                           <div className="tt-note-shell">
                             <div className="tt-note-actions tt-note-actions-corner">
                               <button
@@ -841,7 +878,14 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
                         <td colSpan={labelSpan} className="tt-day-total-label">
                           Day Total P&L
                         </td>
-                        <td className="tt-day-total-value">${Number(dayTotalPnl).toFixed(2)}</td>
+                        <td
+                          className="tt-day-total-value"
+                          style={{
+                            color: dayTotalPnl > 0 ? "green" : dayTotalPnl < 0 ? "red" : "var(--text-h)",
+                          }}
+                        >
+                          ${Number(dayTotalPnl).toFixed(2)}
+                        </td>
                         {trailingSpan > 0 && <td colSpan={trailingSpan} className="tt-day-total-tail" />}
                       </tr>
                     );
@@ -851,6 +895,11 @@ function TradesTable({ fills = [], completedTrades = [], tradeSummaries = [] }) 
             })}
           </tbody>
         </table>
+        <datalist id="tt-strategy-options">
+          {strategySuggestions.map((strategy) => (
+            <option key={strategy} value={strategy} />
+          ))}
+        </datalist>
       </div>
       )}
 

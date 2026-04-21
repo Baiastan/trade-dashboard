@@ -274,7 +274,8 @@ code {
 }
 
 .tt-note-input {
-  width: min(100%, 260px);
+  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 8px;
@@ -297,6 +298,8 @@ code {
   color: var(--text-h);
   margin-top: 0;
   padding-right: 56px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tt-note-actions {
@@ -352,6 +355,28 @@ code {
   justify-content: center;
   line-height: 1;
   font-size: 10px;
+}
+
+.tt-note-cell {
+  width: 30%;
+  max-width: 420px;
+  min-width: 240px;
+}
+
+.tt-strategy-cell {
+  min-width: 210px;
+  width: 210px;
+}
+
+.tt-strategy-input {
+  width: 100%;
+  border: 1px solid color-mix(in oklab, var(--border) 86%, var(--text-h) 14%);
+  background: var(--bg);
+  color: var(--text-h);
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  box-sizing: border-box;
 }
 
 .tt-pagination {

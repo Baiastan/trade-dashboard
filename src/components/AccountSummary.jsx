@@ -1,15 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton, FormField, FormRow, SelectInput, SummaryMetricCard, TextInput } from "./ui/FormControls";
 
-function AccountSummary({ completedTrades, onAccountDataChange }) {
-  const [initialFundInput, setInitialFundInput] = useState(() => {
-    return localStorage.getItem("initialFund") || "";
-  });
-
-  const [cashflows, setCashflows] = useState(() => {
-    const saved = localStorage.getItem("cashflows");
-    return saved ? JSON.parse(saved) : [];
-  });
+function AccountSummary({ completedTrades, onAccountDataChange, initialFundValue = 0, cashflowsValue = [] }) {
+  const [initialFundInput, setInitialFundInput] = useState(String(initialFundValue || ""));
+  const [cashflows, setCashflows] = useState(Array.isArray(cashflowsValue) ? cashflowsValue : []);
 
   const [amountInput, setAmountInput] = useState("");
   const [type, setType] = useState("deposit");
@@ -18,12 +12,12 @@ function AccountSummary({ completedTrades, onAccountDataChange }) {
   const initialFund = Number(initialFundInput || 0);
 
   useEffect(() => {
-    localStorage.setItem("initialFund", initialFundInput);
-  }, [initialFundInput]);
+    setInitialFundInput(String(initialFundValue || ""));
+  }, [initialFundValue]);
 
   useEffect(() => {
-    localStorage.setItem("cashflows", JSON.stringify(cashflows));
-  }, [cashflows]);
+    setCashflows(Array.isArray(cashflowsValue) ? cashflowsValue : []);
+  }, [cashflowsValue]);
 
   useEffect(() => {
     onAccountDataChange?.({
